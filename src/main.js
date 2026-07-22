@@ -6,6 +6,19 @@ const counties = JSON.parse(countiesRaw.replace(/^[^{]*/, ""));
 const droughtWmsUrl =
   "https://ndmcgeodata.unl.edu/cgi-bin/mapserv.exe?map=/ms4w/apps/usdm/map/usdm_current_wms.map";
 const droughtCapabilitiesUrl = `${droughtWmsUrl}&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
+const rainfallWmsUrl =
+  "https://mapservices.weather.noaa.gov/raster/services/obs/mrms_qpe/ImageServer/WMSServer";
+const rainfallQueryUrl =
+  "https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer/query?where=name%20LIKE%20%27conus_QPE_%25%27&outFields=name,idp_filedate,idp_validendtime&returnGeometry=false&f=pjson";
+const rainfallLayers = {
+  "1 hour": "mrms_qpe:rft_1hr",
+  "3 hours": "mrms_qpe:rft_3hr",
+  "6 hours": "mrms_qpe:rft_6hr",
+  "12 hours": "mrms_qpe:rft_12hr",
+  "24 hours": "mrms_qpe:rft_24hr",
+  "48 hours": "mrms_qpe:rft_48hr",
+  "72 hours": "mrms_qpe:rft_72hr",
+};
 
 const map = L.map("map", {
   center: [33.8361, -81.1637],
@@ -43,6 +56,16 @@ const droughtLayer = L.tileLayer
     maxZoom: 19,
   })
   .addTo(map);
+
+const rainfallLayer = L.tileLayer.wms(rainfallWmsUrl, {
+  layers: rainfallLayers["24 hours"],
+  format: "image/png",
+  transparent: true,
+  version: "1.3.0",
+  opacity: 0.62,
+  attribution: "MRMS QPE: NOAA/NWS",
+  maxZoom: 19,
+});
 
 const countiesLayer = L.geoJSON(counties, {
   style: {
@@ -90,6 +113,7 @@ L.control
     },
     {
       "USDM drought severity": droughtLayer,
+      "MRMS rainfall estimate": rainfallLayer,
       "County outlines": countiesLayer,
       Cities: cityLayer,
     },
@@ -103,6 +127,8 @@ L.control
 L.control.scale({ imperial: true, metric: true }).addTo(map);
 const droughtLegend = addDroughtLegend(map, droughtLayer);
 updateDroughtDate(droughtLegend.dateElement);
+const rainfallLegend = addRainfallLegend(map, rainfallLayer);
+updateRainfallDate(rainfallLegend.dateElement);
 map.fitBounds(countiesLayer.getBounds(), { padding: [20, 20] });
 
 function addDroughtLegend(map, droughtLayer) {
@@ -142,6 +168,55 @@ function addDroughtLegend(map, droughtLayer) {
   return { dateElement };
 }
 
+function addRainfallLegend(map, rainfallLayer) {
+  const legend = L.control({ position: "bottomleft" });
+  let dateElement;
+
+  legend.onAdd = () => {
+    const element = L.DomUtil.create("div", "rainfall-legend");
+    const layerOptions = Object.entries(rainfallLayers)
+      .map(([label, layerName]) => {
+        const selected = label === "24 hours" ? " selected" : "";
+        return `<option value="${layerName}"${selected}>${label}</option>`;
+      })
+      .join("");
+
+    element.innerHTML = `
+      <div class="legend-title">NOAA MRMS Rainfall</div>
+      <div class="legend-subtitle">Radar-only QPE, 1 km grid, inches</div>
+      <div class="legend-date">Updated: <strong data-rainfall-date>Loading...</strong></div>
+      <label class="select-control">
+        Accumulation
+        <select>${layerOptions}</select>
+      </label>
+      <label class="opacity-control">
+        Overlay opacity
+        <input type="range" min="20" max="100" value="62" />
+      </label>
+    `;
+
+    dateElement = element.querySelector("[data-rainfall-date]");
+    const select = element.querySelector("select");
+    const slider = element.querySelector("input");
+
+    select.addEventListener("change", () => {
+      rainfallLayer.setParams({ layers: select.value });
+    });
+
+    slider.addEventListener("input", () => {
+      rainfallLayer.setOpacity(Number(slider.value) / 100);
+    });
+
+    L.DomEvent.disableClickPropagation(element);
+    L.DomEvent.disableScrollPropagation(element);
+
+    return element;
+  };
+
+  legend.addTo(map);
+  return { dateElement };
+}
+
 async function updateDroughtDate(dateElement) {
   try {
     const response = await fetch(droughtCapabilitiesUrl);
@@ -166,6 +241,37 @@ async function updateDroughtDate(dateElement) {
     }).format(mapDate);
   } catch (error) {
     dateElement.textContent = "Unavailable";
+    console.error(error);
+  }
+}
+
+async function updateRainfallDate(dateElement) {
+  try {
+    const response = await fetch(rainfallQueryUrl);
+    if (!response.ok) {
+      throw new Error(`MRMS query request failed: ${response.status}`);
+    }
+
+    const result = await response.json();
+    const latestTimestamp = result.features
+      ?.map((feature) => feature.attributes?.idp_validendtime)
+      .filter(Boolean)
+      .sort((a, b) => b - a)[0];
+
+    if (!latestTimestamp) {
+      throw new Error("MRMS query did not include a valid end time.");
+    }
+
+    dateElement.textContent = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    }).format(new Date(latestTimestamp));
+  } catch (error) {
+    dateElement.textContent = "Usually by 0:04 after the hour";
     console.error(error);
   }
 }

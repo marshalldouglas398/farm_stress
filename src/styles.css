@@ -72,7 +72,8 @@ body {
   font-weight: 700;
 }
 
-.drought-legend {
+.drought-legend,
+.rainfall-legend {
   width: 230px;
   padding: 12px;
   border: 1px solid rgba(31, 41, 55, 0.16);
@@ -81,6 +82,10 @@ body {
   box-shadow: 0 12px 30px rgba(31, 41, 55, 0.16);
   color: #111827;
   line-height: 1.25;
+}
+
+.rainfall-legend {
+  width: 240px;
 }
 
 .legend-title {
@@ -120,7 +125,8 @@ body {
   flex: 0 0 auto;
 }
 
-.opacity-control {
+.opacity-control,
+.select-control {
   display: grid;
   gap: 6px;
   margin-top: 12px;
@@ -129,8 +135,18 @@ body {
   font-weight: 700;
 }
 
-.opacity-control input {
+.opacity-control input,
+.select-control select {
   width: 100%;
+}
+
+.select-control select {
+  min-height: 34px;
+  border: 1px solid rgba(31, 41, 55, 0.22);
+  border-radius: 6px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
 }
 
 .eyebrow {
