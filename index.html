@@ -3,16 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test Page</title>
+    <title>South Carolina Map</title>
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <main class="page">
-      <section class="panel">
-        <p class="eyebrow">Web app initialized</p>
-        <h1>Test Page</h1>
-        <p>This is a neutral placeholder page for the app.</p>
+      <section class="header">
+        <p class="eyebrow">Map View</p>
+        <h1>South Carolina</h1>
+      </section>
+      <section class="map-panel" aria-label="Interactive map of South Carolina">
+        <div id="map"></div>
       </section>
     </main>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

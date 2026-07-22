@@ -1,6 +1,6 @@
 :root {
   color: #1f2937;
-  background: #f3f4f6;
+  background: #eef2f6;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -19,20 +19,57 @@ body {
 }
 
 .page {
-  display: grid;
   min-height: 100vh;
-  place-items: center;
   padding: 24px;
 }
 
-.panel {
-  width: min(100%, 560px);
-  padding: 40px;
+.header {
+  width: min(100%, 1120px);
+  margin: 0 auto 18px;
+}
+
+.map-panel {
+  position: relative;
+  width: min(100%, 1120px);
+  height: min(78vh, 780px);
+  min-height: 520px;
+  margin: 0 auto;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 18px 50px rgba(31, 41, 55, 0.08);
-  text-align: center;
+  overflow: hidden;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-container {
+  background: #dbeafe;
+  font: inherit;
+}
+
+.leaflet-control-layers,
+.leaflet-bar a,
+.leaflet-control-scale-line {
+  border-color: rgba(31, 41, 55, 0.18);
+  color: #111827;
+}
+
+.leaflet-control-layers {
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(31, 41, 55, 0.14);
+}
+
+.city-label {
+  border: 0;
+  background: rgba(255, 255, 255, 0.86);
+  color: #111827;
+  box-shadow: none;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .eyebrow {
@@ -45,8 +82,8 @@ body {
 }
 
 h1 {
-  margin: 0 0 12px;
-  font-size: clamp(2.2rem, 8vw, 4rem);
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 4rem);
   line-height: 1;
   letter-spacing: 0;
 }
@@ -56,4 +93,15 @@ p {
   color: #4b5563;
   font-size: 1rem;
   line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 16px;
+  }
+
+  .map-panel {
+    min-height: 420px;
+    height: 76vh;
+  }
 }
