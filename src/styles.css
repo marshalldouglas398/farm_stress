@@ -90,9 +90,17 @@ body {
 }
 
 .legend-subtitle {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: #4b5563;
   font-size: 0.76rem;
+}
+
+.legend-date {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.12);
+  color: #374151;
+  font-size: 0.78rem;
 }
 
 .legend-row {

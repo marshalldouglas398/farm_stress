@@ -5,6 +5,7 @@ import countiesRaw from "./data/sc-counties.geojson?raw";
 const counties = JSON.parse(countiesRaw.replace(/^[^{]*/, ""));
 const droughtWmsUrl =
   "https://ndmcgeodata.unl.edu/cgi-bin/mapserv.exe?map=/ms4w/apps/usdm/map/usdm_current_wms.map";
+const droughtCapabilitiesUrl = `${droughtWmsUrl}&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
 
 const map = L.map("map", {
   center: [33.8361, -81.1637],
@@ -100,17 +101,20 @@ L.control
   .addTo(map);
 
 L.control.scale({ imperial: true, metric: true }).addTo(map);
-addDroughtLegend(map, droughtLayer);
+const droughtLegend = addDroughtLegend(map, droughtLayer);
+updateDroughtDate(droughtLegend.dateElement);
 map.fitBounds(countiesLayer.getBounds(), { padding: [20, 20] });
 
 function addDroughtLegend(map, droughtLayer) {
   const legend = L.control({ position: "bottomright" });
+  let dateElement;
 
   legend.onAdd = () => {
     const element = L.DomUtil.create("div", "drought-legend");
     element.innerHTML = `
       <div class="legend-title">U.S. Drought Monitor</div>
       <div class="legend-subtitle">Current sub-county severity polygons</div>
+      <div class="legend-date">Map date: <strong data-drought-date>Loading...</strong></div>
       <div class="legend-row"><span style="background:#ffff00"></span>D0 Abnormally dry</div>
       <div class="legend-row"><span style="background:#fcd37f"></span>D1 Moderate drought</div>
       <div class="legend-row"><span style="background:#ffaa00"></span>D2 Severe drought</div>
@@ -122,6 +126,7 @@ function addDroughtLegend(map, droughtLayer) {
       </label>
     `;
 
+    dateElement = element.querySelector("[data-drought-date]");
     const slider = element.querySelector("input");
     slider.addEventListener("input", () => {
       droughtLayer.setOpacity(Number(slider.value) / 100);
@@ -134,4 +139,33 @@ function addDroughtLegend(map, droughtLayer) {
   };
 
   legend.addTo(map);
+  return { dateElement };
+}
+
+async function updateDroughtDate(dateElement) {
+  try {
+    const response = await fetch(droughtCapabilitiesUrl);
+    if (!response.ok) {
+      throw new Error(`USDM capabilities request failed: ${response.status}`);
+    }
+
+    const xmlText = await response.text();
+    const title = xmlText.match(/<Service>[\s\S]*?<Title>(.*?)<\/Title>/)?.[1] ?? "";
+    const dateMatch = title.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+
+    if (!dateMatch) {
+      throw new Error("USDM capabilities title did not include a date.");
+    }
+
+    const [, month, day, year] = dateMatch;
+    const mapDate = new Date(Number(year), Number(month) - 1, Number(day));
+    dateElement.textContent = new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(mapDate);
+  } catch (error) {
+    dateElement.textContent = "Unavailable";
+    console.error(error);
+  }
 }
