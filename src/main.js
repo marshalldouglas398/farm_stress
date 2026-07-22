@@ -19,6 +19,8 @@ const rainfallLayers = {
   "48 hours": "mrms_qpe:rft_48hr",
   "72 hours": "mrms_qpe:rft_72hr",
 };
+const cropWmsUrl = "https://nassgeodata.gmu.edu/CropScapeService/wms_cdl_sc.cgi";
+const cropYears = ["2025", "2024", "2023", "2022", "2021", "2020"];
 const droughtToggle = document.querySelector("#drought-toggle");
 const droughtOpacity = document.querySelector("#drought-opacity");
 const droughtDate = document.querySelector("#drought-date");
@@ -26,6 +28,10 @@ const rainfallToggle = document.querySelector("#rainfall-toggle");
 const rainfallOpacity = document.querySelector("#rainfall-opacity");
 const rainfallAccumulation = document.querySelector("#rainfall-accumulation");
 const rainfallDate = document.querySelector("#rainfall-date");
+const cropToggle = document.querySelector("#crop-toggle");
+const cropOpacity = document.querySelector("#crop-opacity");
+const cropYear = document.querySelector("#crop-year");
+const cropDate = document.querySelector("#crop-date");
 
 const map = L.map("map", {
   center: [33.8361, -81.1637],
@@ -71,6 +77,17 @@ const rainfallLayer = L.tileLayer.wms(rainfallWmsUrl, {
   version: "1.3.0",
   opacity: 0.62,
   attribution: "MRMS QPE: NOAA/NWS",
+  maxZoom: 19,
+});
+
+const cropLayer = L.tileLayer.wms(cropWmsUrl, {
+  layers: "cdl_2025_sc",
+  format: "image/png",
+  transparent: true,
+  version: "1.1.1",
+  opacity: 0.72,
+  crs: L.CRS.EPSG4326,
+  attribution: "Cropland Data Layer: USDA NASS",
   maxZoom: 19,
 });
 
@@ -144,6 +161,14 @@ function setupOverlayControls() {
     rainfallAccumulation.append(option);
   }
 
+  for (const year of cropYears) {
+    const option = document.createElement("option");
+    option.value = `cdl_${year}_sc`;
+    option.textContent = year;
+    option.selected = year === "2025";
+    cropYear.append(option);
+  }
+
   droughtToggle.addEventListener("change", () => {
     if (droughtToggle.checked) {
       droughtLayer.addTo(map);
@@ -162,6 +187,15 @@ function setupOverlayControls() {
     rainfallLayer.remove();
   });
 
+  cropToggle.addEventListener("change", () => {
+    if (cropToggle.checked) {
+      cropLayer.addTo(map);
+      return;
+    }
+
+    cropLayer.remove();
+  });
+
   droughtOpacity.addEventListener("input", () => {
     droughtLayer.setOpacity(Number(droughtOpacity.value) / 100);
   });
@@ -170,8 +204,17 @@ function setupOverlayControls() {
     rainfallLayer.setOpacity(Number(rainfallOpacity.value) / 100);
   });
 
+  cropOpacity.addEventListener("input", () => {
+    cropLayer.setOpacity(Number(cropOpacity.value) / 100);
+  });
+
   rainfallAccumulation.addEventListener("change", () => {
     rainfallLayer.setParams({ layers: rainfallAccumulation.value });
+  });
+
+  cropYear.addEventListener("change", () => {
+    cropLayer.setParams({ layers: cropYear.value });
+    cropDate.textContent = `${cropYear.selectedOptions[0].textContent} CDL`;
   });
 }
 

@@ -54,6 +54,32 @@
               <input id="rainfall-opacity" type="range" min="20" max="100" value="62" />
             </label>
           </section>
+
+          <section class="settings-panel" aria-labelledby="crop-settings-title">
+            <div class="settings-heading">
+              <h2 id="crop-settings-title">USDA Crop Types</h2>
+              <label class="switch">
+                <input id="crop-toggle" type="checkbox" />
+                <span>Show</span>
+              </label>
+            </div>
+            <p class="panel-subtitle">Cropland Data Layer for South Carolina</p>
+            <p class="panel-date">Source: <strong id="crop-date">2025 CDL</strong></p>
+            <label class="select-control">
+              Year
+              <select id="crop-year"></select>
+            </label>
+            <div class="legend-row"><span style="background:#ffd400"></span>Corn</div>
+            <div class="legend-row"><span style="background:#ff2626"></span>Cotton</div>
+            <div class="legend-row"><span style="background:#267300"></span>Soybeans</div>
+            <div class="legend-row"><span style="background:#70a800"></span>Peanuts</div>
+            <div class="legend-row"><span style="background:#ff91ab"></span>Peaches</div>
+            <div class="legend-row"><span style="background:#e9ffbe"></span>Grass/Pasture</div>
+            <label class="opacity-control">
+              Overlay opacity
+              <input id="crop-opacity" type="range" min="20" max="100" value="72" />
+            </label>
+          </section>
         </aside>
 
         <section class="map-panel" aria-label="Interactive map of South Carolina">
