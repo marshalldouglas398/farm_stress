@@ -3,6 +3,8 @@ import "leaflet/dist/leaflet.css";
 import countiesRaw from "./data/sc-counties.geojson?raw";
 
 const counties = JSON.parse(countiesRaw.replace(/^[^{]*/, ""));
+const droughtWmsUrl =
+  "https://ndmcgeodata.unl.edu/cgi-bin/mapserv.exe?map=/ms4w/apps/usdm/map/usdm_current_wms.map";
 
 const map = L.map("map", {
   center: [33.8361, -81.1637],
@@ -29,12 +31,24 @@ const satelliteLayer = L.tileLayer(
 
 satelliteLayer.addTo(map);
 
+const droughtLayer = L.tileLayer
+  .wms(droughtWmsUrl, {
+    layers: "usdm_current",
+    format: "image/png",
+    transparent: true,
+    version: "1.1.1",
+    opacity: 0.78,
+    attribution: "U.S. Drought Monitor: NDMC, NOAA, USDA",
+    maxZoom: 19,
+  })
+  .addTo(map);
+
 const countiesLayer = L.geoJSON(counties, {
   style: {
-    color: "#ffffff",
-    weight: 1.4,
-    fillColor: "#2f7d4f",
-    fillOpacity: 0.12,
+    color: "#111827",
+    weight: 1,
+    fillOpacity: 0,
+    opacity: 0.62,
   },
   onEachFeature(feature, layer) {
     layer.bindTooltip(`${feature.properties.NAME} County`, {
@@ -74,6 +88,7 @@ L.control
       Streets: streetLayer,
     },
     {
+      "USDM drought severity": droughtLayer,
       "County outlines": countiesLayer,
       Cities: cityLayer,
     },
@@ -85,4 +100,38 @@ L.control
   .addTo(map);
 
 L.control.scale({ imperial: true, metric: true }).addTo(map);
+addDroughtLegend(map, droughtLayer);
 map.fitBounds(countiesLayer.getBounds(), { padding: [20, 20] });
+
+function addDroughtLegend(map, droughtLayer) {
+  const legend = L.control({ position: "bottomright" });
+
+  legend.onAdd = () => {
+    const element = L.DomUtil.create("div", "drought-legend");
+    element.innerHTML = `
+      <div class="legend-title">U.S. Drought Monitor</div>
+      <div class="legend-subtitle">Current sub-county severity polygons</div>
+      <div class="legend-row"><span style="background:#ffff00"></span>D0 Abnormally dry</div>
+      <div class="legend-row"><span style="background:#fcd37f"></span>D1 Moderate drought</div>
+      <div class="legend-row"><span style="background:#ffaa00"></span>D2 Severe drought</div>
+      <div class="legend-row"><span style="background:#e60000"></span>D3 Extreme drought</div>
+      <div class="legend-row"><span style="background:#730000"></span>D4 Exceptional drought</div>
+      <label class="opacity-control">
+        Overlay opacity
+        <input type="range" min="20" max="100" value="78" />
+      </label>
+    `;
+
+    const slider = element.querySelector("input");
+    slider.addEventListener("input", () => {
+      droughtLayer.setOpacity(Number(slider.value) / 100);
+    });
+
+    L.DomEvent.disableClickPropagation(element);
+    L.DomEvent.disableScrollPropagation(element);
+
+    return element;
+  };
+
+  legend.addTo(map);
+}
