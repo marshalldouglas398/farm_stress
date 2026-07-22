@@ -12,8 +12,53 @@
         <p class="eyebrow">Map View</p>
         <h1>South Carolina Drought Monitor</h1>
       </section>
-      <section class="map-panel" aria-label="Interactive map of South Carolina">
-        <div id="map"></div>
+      <section class="workspace" aria-label="Interactive map controls">
+        <aside class="sidebar" aria-label="Weather overlays">
+          <section class="settings-panel" aria-labelledby="drought-settings-title">
+            <div class="settings-heading">
+              <h2 id="drought-settings-title">U.S. Drought Monitor</h2>
+              <label class="switch">
+                <input id="drought-toggle" type="checkbox" checked />
+                <span>Show</span>
+              </label>
+            </div>
+            <p class="panel-subtitle">Current sub-county severity polygons</p>
+            <p class="panel-date">Map date: <strong id="drought-date">Loading...</strong></p>
+            <div class="legend-row"><span style="background:#ffff00"></span>D0 Abnormally dry</div>
+            <div class="legend-row"><span style="background:#fcd37f"></span>D1 Moderate drought</div>
+            <div class="legend-row"><span style="background:#ffaa00"></span>D2 Severe drought</div>
+            <div class="legend-row"><span style="background:#e60000"></span>D3 Extreme drought</div>
+            <div class="legend-row"><span style="background:#730000"></span>D4 Exceptional drought</div>
+            <label class="opacity-control">
+              Overlay opacity
+              <input id="drought-opacity" type="range" min="20" max="100" value="78" />
+            </label>
+          </section>
+
+          <section class="settings-panel" aria-labelledby="rainfall-settings-title">
+            <div class="settings-heading">
+              <h2 id="rainfall-settings-title">NOAA MRMS Rainfall</h2>
+              <label class="switch">
+                <input id="rainfall-toggle" type="checkbox" />
+                <span>Show</span>
+              </label>
+            </div>
+            <p class="panel-subtitle">Radar-only QPE, 1 km grid, inches</p>
+            <p class="panel-date">Updated: <strong id="rainfall-date">Loading...</strong></p>
+            <label class="select-control">
+              Accumulation
+              <select id="rainfall-accumulation"></select>
+            </label>
+            <label class="opacity-control">
+              Overlay opacity
+              <input id="rainfall-opacity" type="range" min="20" max="100" value="62" />
+            </label>
+          </section>
+        </aside>
+
+        <section class="map-panel" aria-label="Interactive map of South Carolina">
+          <div id="map"></div>
+        </section>
       </section>
     </main>
     <script type="module" src="/src/main.js"></script>

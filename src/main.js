@@ -19,6 +19,13 @@ const rainfallLayers = {
   "48 hours": "mrms_qpe:rft_48hr",
   "72 hours": "mrms_qpe:rft_72hr",
 };
+const droughtToggle = document.querySelector("#drought-toggle");
+const droughtOpacity = document.querySelector("#drought-opacity");
+const droughtDate = document.querySelector("#drought-date");
+const rainfallToggle = document.querySelector("#rainfall-toggle");
+const rainfallOpacity = document.querySelector("#rainfall-opacity");
+const rainfallAccumulation = document.querySelector("#rainfall-accumulation");
+const rainfallDate = document.querySelector("#rainfall-date");
 
 const map = L.map("map", {
   center: [33.8361, -81.1637],
@@ -112,8 +119,6 @@ L.control
       Streets: streetLayer,
     },
     {
-      "USDM drought severity": droughtLayer,
-      "MRMS rainfall estimate": rainfallLayer,
       "County outlines": countiesLayer,
       Cities: cityLayer,
     },
@@ -125,96 +130,49 @@ L.control
   .addTo(map);
 
 L.control.scale({ imperial: true, metric: true }).addTo(map);
-const droughtLegend = addDroughtLegend(map, droughtLayer);
-updateDroughtDate(droughtLegend.dateElement);
-const rainfallLegend = addRainfallLegend(map, rainfallLayer);
-updateRainfallDate(rainfallLegend.dateElement);
+setupOverlayControls();
+updateDroughtDate(droughtDate);
+updateRainfallDate(rainfallDate);
 map.fitBounds(countiesLayer.getBounds(), { padding: [20, 20] });
 
-function addDroughtLegend(map, droughtLayer) {
-  const legend = L.control({ position: "bottomright" });
-  let dateElement;
+function setupOverlayControls() {
+  for (const [label, layerName] of Object.entries(rainfallLayers)) {
+    const option = document.createElement("option");
+    option.value = layerName;
+    option.textContent = label;
+    option.selected = label === "24 hours";
+    rainfallAccumulation.append(option);
+  }
 
-  legend.onAdd = () => {
-    const element = L.DomUtil.create("div", "drought-legend");
-    element.innerHTML = `
-      <div class="legend-title">U.S. Drought Monitor</div>
-      <div class="legend-subtitle">Current sub-county severity polygons</div>
-      <div class="legend-date">Map date: <strong data-drought-date>Loading...</strong></div>
-      <div class="legend-row"><span style="background:#ffff00"></span>D0 Abnormally dry</div>
-      <div class="legend-row"><span style="background:#fcd37f"></span>D1 Moderate drought</div>
-      <div class="legend-row"><span style="background:#ffaa00"></span>D2 Severe drought</div>
-      <div class="legend-row"><span style="background:#e60000"></span>D3 Extreme drought</div>
-      <div class="legend-row"><span style="background:#730000"></span>D4 Exceptional drought</div>
-      <label class="opacity-control">
-        Overlay opacity
-        <input type="range" min="20" max="100" value="78" />
-      </label>
-    `;
+  droughtToggle.addEventListener("change", () => {
+    if (droughtToggle.checked) {
+      droughtLayer.addTo(map);
+      return;
+    }
 
-    dateElement = element.querySelector("[data-drought-date]");
-    const slider = element.querySelector("input");
-    slider.addEventListener("input", () => {
-      droughtLayer.setOpacity(Number(slider.value) / 100);
-    });
+    droughtLayer.remove();
+  });
 
-    L.DomEvent.disableClickPropagation(element);
-    L.DomEvent.disableScrollPropagation(element);
+  rainfallToggle.addEventListener("change", () => {
+    if (rainfallToggle.checked) {
+      rainfallLayer.addTo(map);
+      return;
+    }
 
-    return element;
-  };
+    rainfallLayer.remove();
+  });
 
-  legend.addTo(map);
-  return { dateElement };
-}
+  droughtOpacity.addEventListener("input", () => {
+    droughtLayer.setOpacity(Number(droughtOpacity.value) / 100);
+  });
 
-function addRainfallLegend(map, rainfallLayer) {
-  const legend = L.control({ position: "bottomleft" });
-  let dateElement;
+  rainfallOpacity.addEventListener("input", () => {
+    rainfallLayer.setOpacity(Number(rainfallOpacity.value) / 100);
+  });
 
-  legend.onAdd = () => {
-    const element = L.DomUtil.create("div", "rainfall-legend");
-    const layerOptions = Object.entries(rainfallLayers)
-      .map(([label, layerName]) => {
-        const selected = label === "24 hours" ? " selected" : "";
-        return `<option value="${layerName}"${selected}>${label}</option>`;
-      })
-      .join("");
-
-    element.innerHTML = `
-      <div class="legend-title">NOAA MRMS Rainfall</div>
-      <div class="legend-subtitle">Radar-only QPE, 1 km grid, inches</div>
-      <div class="legend-date">Updated: <strong data-rainfall-date>Loading...</strong></div>
-      <label class="select-control">
-        Accumulation
-        <select>${layerOptions}</select>
-      </label>
-      <label class="opacity-control">
-        Overlay opacity
-        <input type="range" min="20" max="100" value="62" />
-      </label>
-    `;
-
-    dateElement = element.querySelector("[data-rainfall-date]");
-    const select = element.querySelector("select");
-    const slider = element.querySelector("input");
-
-    select.addEventListener("change", () => {
-      rainfallLayer.setParams({ layers: select.value });
-    });
-
-    slider.addEventListener("input", () => {
-      rainfallLayer.setOpacity(Number(slider.value) / 100);
-    });
-
-    L.DomEvent.disableClickPropagation(element);
-    L.DomEvent.disableScrollPropagation(element);
-
-    return element;
-  };
-
-  legend.addTo(map);
-  return { dateElement };
+  rainfallAccumulation.addEventListener("change", () => {
+    rainfallLayer.setParams({ layers: rainfallAccumulation.value });
+  });
 }
 
 async function updateDroughtDate(dateElement) {
