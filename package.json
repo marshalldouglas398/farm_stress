@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
+    "proj4": "^2.20.9",
     "vite": "^7.1.11"
-  },
-  "devDependencies": {}
+  }
 }

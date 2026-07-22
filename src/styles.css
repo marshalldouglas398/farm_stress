@@ -116,6 +116,53 @@ body {
   height: 100%;
 }
 
+.hover-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 500;
+  width: 250px;
+  padding: 12px;
+  border: 1px solid rgba(31, 41, 55, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 14px 34px rgba(31, 41, 55, 0.18);
+  color: #111827;
+  pointer-events: none;
+}
+
+.hover-title {
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.hover-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.hover-card dl div {
+  display: grid;
+  gap: 2px;
+}
+
+.hover-card dt {
+  color: #6b7280;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hover-card dd {
+  margin: 0;
+  color: #111827;
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
 .leaflet-container {
   background: #dbeafe;
   font: inherit;
